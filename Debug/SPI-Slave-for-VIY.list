@@ -908,9 +908,9 @@ void MX_SPI2_Init(void)
  80006b4:	4b0f      	ldr	r3, [pc, #60]	; (80006f4 <MX_SPI2_Init+0x5c>)
  80006b6:	2202      	movs	r2, #2
  80006b8:	611a      	str	r2, [r3, #16]
-  hspi2.Init.CLKPhase = SPI_PHASE_1EDGE;
+  hspi2.Init.CLKPhase = SPI_PHASE_2EDGE;
  80006ba:	4b0e      	ldr	r3, [pc, #56]	; (80006f4 <MX_SPI2_Init+0x5c>)
- 80006bc:	2200      	movs	r2, #0
+ 80006bc:	2201      	movs	r2, #1
  80006be:	615a      	str	r2, [r3, #20]
   hspi2.Init.NSS = SPI_NSS_SOFT;
  80006c0:	4b0c      	ldr	r3, [pc, #48]	; (80006f4 <MX_SPI2_Init+0x5c>)
