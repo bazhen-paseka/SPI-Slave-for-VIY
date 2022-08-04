@@ -63,6 +63,7 @@
 	uint8_t aRxBuffer[BUFFERSIZE] = "0123456" ;
 	__IO uint32_t wTransferState = TRANSFER_WAIT;
 	int cnt_i=0;
+	volatile uint8_t nss_flag = 0;
 
 /* USER CODE END PV */
 
