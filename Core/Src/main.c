@@ -148,6 +148,7 @@ int main(void)
 	HAL_UART_Transmit( &huart1, (uint8_t *)DataChar , strlen(DataChar) , 100 ) ;
 
 	wTransferState = TRANSFER_WAIT;
+	nss_flag = 0;
 
 	sprintf(DataChar,"SPI_TransmitReceive_DMA" ) ;
 	HAL_UART_Transmit( &huart1, (uint8_t *)DataChar , strlen(DataChar) , 100 ) ;
@@ -160,19 +161,27 @@ int main(void)
 	}
 
 	cnt_i = 0;
-	while (wTransferState == TRANSFER_WAIT) {
+//	while (wTransferState == TRANSFER_WAIT) {
+//		HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
+//		sprintf(DataChar,"  TRANSFER_WAIT.. %d\r", cnt_i++ ) ;
+//		HAL_UART_Transmit( &huart1, (uint8_t *)DataChar , strlen(DataChar) , 100 ) ;
+//		HAL_Delay(100);
+//	}
+
+	while (nss_flag == 0) {
 		HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
-		sprintf(DataChar,"  TRANSFER_WAIT.. %d\r", cnt_i++ ) ;
+		sprintf(DataChar,"  NSS not ready.. %d\r", cnt_i++ ) ;
 		HAL_UART_Transmit( &huart1, (uint8_t *)DataChar , strlen(DataChar) , 100 ) ;
 		HAL_Delay(100);
 	}
 
-	PrintSPI2();
 //	ResetSPI2();
-	//PrintSPI2();
 
 	HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, SET);
-	sprintf(DataChar,"TRANSFER_COMPLETED\r\n" ) ;
+//	sprintf(DataChar,"TRANSFER_COMPLETED\r\n" ) ;
+//	HAL_UART_Transmit( &huart1, (uint8_t *)DataChar , strlen(DataChar) , 100 ) ;
+
+	sprintf(DataChar,"NSS Ready.\r\n" ) ;
 	HAL_UART_Transmit( &huart1, (uint8_t *)DataChar , strlen(DataChar) , 100 ) ;
 
 	sprintf(DataChar,"2Tx: " ) ;
@@ -188,6 +197,8 @@ int main(void)
 	HAL_UART_Transmit( &huart1, (uint8_t *)DataChar , strlen(DataChar) , 100 ) ;
 	sprintf(DataChar,"\r\n" ) ;
 	HAL_UART_Transmit( &huart1, (uint8_t *)DataChar , strlen(DataChar) , 100 ) ;
+
+	PrintSPI2();
 
 	uint16_t buffer_cmp_res = 0;
 

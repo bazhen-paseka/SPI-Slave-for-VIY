@@ -241,7 +241,6 @@ void EXTI15_10_IRQHandler(void)
 		nss_flag = 0 ;
 	} else {
 		nss_flag = 1 ;
-	//	wTransferState = 1;
 	}
 
   /* USER CODE END EXTI15_10_IRQn 0 */
