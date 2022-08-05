@@ -187,6 +187,8 @@ int main(void)
 	sprintf(DataChar,"NSS Ready.\r\n" ) ;
 	HAL_UART_Transmit( &huart1, (uint8_t *)DataChar , strlen(DataChar) , 100 ) ;
 
+	wTransferState = TRANSFER_COMPLETE;
+
 	sprintf(DataChar,"status_SPI_DMA_start = %d\r\n", status_SPI_DMA_start ) ;
 	HAL_UART_Transmit( &huart1, (uint8_t *)DataChar , strlen(DataChar) , 100 ) ;
 
@@ -204,8 +206,7 @@ int main(void)
 	sprintf(DataChar,"\r\n" ) ;
 	HAL_UART_Transmit( &huart1, (uint8_t *)DataChar , strlen(DataChar) , 100 ) ;
 
-//	PrintSPI2();
-
+	//PrintSPI2();
 	uint16_t buffer_cmp_res = 0;
 
 	switch(wTransferState) {
