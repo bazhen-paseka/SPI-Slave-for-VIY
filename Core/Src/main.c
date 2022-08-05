@@ -40,9 +40,9 @@
 /* USER CODE BEGIN PD */
 
 	enum {
-		TRANSFER_WAIT,
-		TRANSFER_COMPLETE,
-		TRANSFER_ERROR
+		TRANSFER_WAIT		= 0,
+		TRANSFER_COMPLETE	= 1,
+		TRANSFER_ERROR	 	= 2
 	};
 
 	#define	BUFFERSIZE	8
@@ -59,11 +59,12 @@
 /* USER CODE BEGIN PV */
 
 	char DataChar[0xFF];
-	uint8_t aTxBuffer[BUFFERSIZE] = "SPI-DMA" ;
-	uint8_t aRxBuffer[BUFFERSIZE] = "0123456" ;
+	uint8_t aTxBuffer[BUFFERSIZE] = "SPI-DMA7" ;
+	uint8_t aRxBuffer[BUFFERSIZE] = "01234567" ;
 	__IO uint32_t wTransferState = TRANSFER_WAIT;
 	int cnt_i=0;
 	volatile uint8_t nss_flag = 0;
+	extern DMA_HandleTypeDef hdma_spi2_rx;
 
 /* USER CODE END PV */
 
@@ -72,6 +73,8 @@ void SystemClock_Config(void);
 /* USER CODE BEGIN PFP */
 
 	uint16_t BufferCmp(uint8_t *pBuffer1, uint8_t *pBuffer2, uint16_t BufferLength);
+	void PrintSPI2 (void);
+	void ResetSPI2 (void) ;
 
 /* USER CODE END PFP */
 
@@ -124,13 +127,29 @@ int main(void)
 	sprintf(DataChar,"\r\n\tfor debug: UART1 115200/8-N-1\r\n" ) ;
 	HAL_UART_Transmit( &huart1, (uint8_t *)DataChar , strlen(DataChar) , 100 ) ;
 
-	snprintf(DataChar, BUFFERSIZE + 7 , "1Tx: %s\r\n", aTxBuffer ) ;
+  /* USER CODE END 2 */
+
+  /* Infinite loop */
+  /* USER CODE BEGIN WHILE */
+  while (1)
+  {
+	sprintf(DataChar, "\r\n1Tx: " ) ;
+	HAL_UART_Transmit( &huart1, (uint8_t *)DataChar , strlen(DataChar) , 100 ) ;
+	snprintf(DataChar, BUFFERSIZE + 1 , "%s", (char*)aTxBuffer ) ;
+	HAL_UART_Transmit( &huart1, (uint8_t *)DataChar , strlen(DataChar) , 100 ) ;
+	sprintf(DataChar, "\r\n" ) ;
 	HAL_UART_Transmit( &huart1, (uint8_t *)DataChar , strlen(DataChar) , 100 ) ;
 
-	snprintf(DataChar, BUFFERSIZE + 7 , "1Rx: %s\r\n", aRxBuffer ) ;
+	sprintf(DataChar, "1Rx: " ) ;
+	HAL_UART_Transmit( &huart1, (uint8_t *)DataChar , strlen(DataChar) , 100 ) ;
+	snprintf(DataChar, BUFFERSIZE + 1 , "%s", (char*)aRxBuffer ) ;
+	HAL_UART_Transmit( &huart1, (uint8_t *)DataChar , strlen(DataChar) , 100 ) ;
+	sprintf(DataChar, "\r\n" ) ;
 	HAL_UART_Transmit( &huart1, (uint8_t *)DataChar , strlen(DataChar) , 100 ) ;
 
-	sprintf(DataChar,"SPI_TransmitReceive_DMA Start... " ) ;
+	wTransferState = TRANSFER_WAIT;
+
+	sprintf(DataChar,"SPI_TransmitReceive_DMA" ) ;
 	HAL_UART_Transmit( &huart1, (uint8_t *)DataChar , strlen(DataChar) , 100 ) ;
 	if(HAL_SPI_TransmitReceive_DMA(&hspi2, (uint8_t*)aTxBuffer, (uint8_t *)aRxBuffer, BUFFERSIZE) != HAL_OK) {
 		sprintf(DataChar," - FAIL\r\n" ) ;
@@ -148,16 +167,24 @@ int main(void)
 		HAL_Delay(100);
 	}
 
+	PrintSPI2();
+//	ResetSPI2();
+	//PrintSPI2();
+
 	HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, SET);
-	sprintf(DataChar,"\r\nTRANSFER_COMPLETED\r\n" ) ;
+	sprintf(DataChar,"TRANSFER_COMPLETED\r\n" ) ;
 	HAL_UART_Transmit( &huart1, (uint8_t *)DataChar , strlen(DataChar) , 100 ) ;
 
-	snprintf(DataChar, BUFFERSIZE + 7 , "2Tx: %s\r\n", aTxBuffer ) ;
+	sprintf(DataChar,"2Tx: " ) ;
+	HAL_UART_Transmit( &huart1, (uint8_t *)DataChar , strlen(DataChar) , 100 ) ;
+	snprintf(DataChar, BUFFERSIZE + 1 , "%s", (char*)aTxBuffer ) ;
+	HAL_UART_Transmit( &huart1, (uint8_t *)DataChar , strlen(DataChar) , 100 ) ;
+	sprintf(DataChar,"\r\n" ) ;
 	HAL_UART_Transmit( &huart1, (uint8_t *)DataChar , strlen(DataChar) , 100 ) ;
 
 	sprintf(DataChar,"2Rx: " ) ;
 	HAL_UART_Transmit( &huart1, (uint8_t *)DataChar , strlen(DataChar) , 100 ) ;
-	snprintf(DataChar, BUFFERSIZE + 1 , "%s", aRxBuffer ) ;
+	snprintf(DataChar, BUFFERSIZE + 1 , "%s", (char*)aRxBuffer ) ;
 	HAL_UART_Transmit( &huart1, (uint8_t *)DataChar , strlen(DataChar) , 100 ) ;
 	sprintf(DataChar,"\r\n" ) ;
 	HAL_UART_Transmit( &huart1, (uint8_t *)DataChar , strlen(DataChar) , 100 ) ;
@@ -169,24 +196,21 @@ int main(void)
 			buffer_cmp_res = BufferCmp((uint8_t*)aTxBuffer, (uint8_t*)aRxBuffer, BUFFERSIZE);
 			sprintf(DataChar,"buffer_cmp_res= %d\r\n", buffer_cmp_res ) ;
 			HAL_UART_Transmit( &huart1, (uint8_t *)DataChar , strlen(DataChar) , 100 ) ;
+			uint8_t byte_cnt = __HAL_DMA_GET_COUNTER(&hdma_spi2_rx);
+			sprintf(DataChar,"DMA_GET_COUNTER= %d\r\n", byte_cnt ) ;
+			HAL_UART_Transmit( &huart1, (uint8_t *)DataChar , strlen(DataChar) , 100 ) ;
 
 		  if(buffer_cmp_res)  {
 				sprintf(DataChar,"Buffer cmp - Wrong.\r\n") ;
 				HAL_UART_Transmit( &huart1, (uint8_t *)DataChar , strlen(DataChar) , 100 ) ;
 		  } else {
-				sprintf(DataChar,"Buffer cmp - Successfully.\r\n") ;
+				sprintf(DataChar,"Buffer cmp - Success.\r\n") ;
 				HAL_UART_Transmit( &huart1, (uint8_t *)DataChar , strlen(DataChar) , 100 ) ;
 		  }
 		break;
 		default: {} break;
 	}
-
-  /* USER CODE END 2 */
-
-  /* Infinite loop */
-  /* USER CODE BEGIN WHILE */
-  while (1)
-  {
+//	HAL_Delay(10000);
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -237,7 +261,7 @@ void SystemClock_Config(void)
 
 void HAL_SPI_TxRxCpltCallback(SPI_HandleTypeDef *hspi) {
 	HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, RESET);
-	sprintf(DataChar,"Cplt: TRANSFER_COMPLETE\r\n" ) ;
+	sprintf(DataChar,"\r\nCplt: TRANS_CMPLT\r\n" ) ;
 	HAL_UART_Transmit( &huart1, (uint8_t *)DataChar , strlen(DataChar) , 100 ) ;
 	wTransferState = TRANSFER_COMPLETE;
 }
@@ -251,6 +275,7 @@ void HAL_SPI_ErrorCallback(SPI_HandleTypeDef *hspi) {
 //-------------------------------------------------------
 
 uint16_t BufferCmp(uint8_t* pBuffer1, uint8_t* pBuffer2, uint16_t BufferLength) {
+	BufferLength++;
 	while (BufferLength--) {
 		if((*pBuffer1) != *pBuffer2) {
 			return BufferLength;
@@ -259,6 +284,64 @@ uint16_t BufferCmp(uint8_t* pBuffer1, uint8_t* pBuffer2, uint16_t BufferLength) 
 		pBuffer2++;
 	}
 	return 0;
+}
+//-------------------------------------------------------
+
+void PrintSPI2 (void) {
+	__IO uint32_t 		myErrorCode		= hspi2.ErrorCode;
+	//SPI_InitTypeDef		myInit 			= hspi2.Init;	//	struct SPI hardware
+	//SPI_TypeDef* 		myInstance		= hspi2.Instance;	//Екземпляр
+	HAL_LockTypeDef		myLock			= hspi2.Lock;	//	0-1-2-3
+//	__SPI_HandleTypeDef*	myRxISR 	= hspi2.RxISR;
+//	uint32_t myRxISR = hspi2.RxISR ;
+//	uint32_t myTxISR = hspi2.TxISR ;
+
+
+	uint16_t 			myRxXferCount	= hspi2.RxXferCount;
+	uint16_t			myRxXferSize	= hspi2.RxXferSize;
+
+	uint16_t 			myTxXferCount	= hspi2.TxXferCount;
+	uint16_t			myTxXferSize	= hspi2.TxXferSize;
+
+	uint32_t 			myInit_DataSize	= hspi2.Init.DataSize;
+
+//	sprintf(DataChar,"\r\nmyTxISR \t%lu\r\n", myTxISR ) ;
+//	HAL_UART_Transmit( &huart1, (uint8_t *)DataChar , strlen(DataChar) , 100 ) ;
+//	sprintf(DataChar,"myRxISR \t%lu\r\n", myRxISR ) ;
+//	HAL_UART_Transmit( &huart1, (uint8_t *)DataChar , strlen(DataChar) , 100 ) ;
+
+	sprintf(DataChar,"myErrorCode \t%lu\r\n", myErrorCode ) ;
+	HAL_UART_Transmit( &huart1, (uint8_t *)DataChar , strlen(DataChar) , 100 ) ;
+	sprintf(DataChar,"myLock \t\t%u\r\n", myLock ) ;
+	HAL_UART_Transmit( &huart1, (uint8_t *)DataChar , strlen(DataChar) , 100 ) ;
+	sprintf(DataChar,"myRxXferCount \t%u\r\n", myRxXferCount ) ;
+	HAL_UART_Transmit( &huart1, (uint8_t *)DataChar , strlen(DataChar) , 100 ) ;
+	sprintf(DataChar,"myRxXferSize \t%u\r\n", myRxXferSize ) ;
+	HAL_UART_Transmit( &huart1, (uint8_t *)DataChar , strlen(DataChar) , 100 ) ;
+	sprintf(DataChar,"myTxXferCount \t%u\r\n", myTxXferCount ) ;
+	HAL_UART_Transmit( &huart1, (uint8_t *)DataChar , strlen(DataChar) , 100 ) ;
+	sprintf(DataChar,"myTxXferSize \t%u\r\n", myTxXferSize ) ;
+	HAL_UART_Transmit( &huart1, (uint8_t *)DataChar , strlen(DataChar) , 100 ) ;
+	sprintf(DataChar,"myInit_DataSize %lu\r\n", myInit_DataSize ) ;
+	HAL_UART_Transmit( &huart1, (uint8_t *)DataChar , strlen(DataChar) , 100 ) ;
+
+}
+//-------------------------------------------------------
+
+void ResetSPI2 (void) {
+ hspi2.RxXferCount = 0 ;
+ hspi2.RxXferSize  = 0 ;
+ hspi2.TxXferCount = 0 ;
+ hspi2.TxXferSize  = 0 ;
+sprintf(DataChar,"\t-> Cleare SPI2 <-\r\n") ;
+HAL_UART_Transmit( &huart1, (uint8_t *)DataChar , strlen(DataChar) , 100 ) ;
+
+	//CLEAR_BIT(hspi->Instance->CR2, SPI_CR2_TXDMAEN | SPI_CR2_RXDMAEN);
+	//hspi->State = HAL_SPI_STATE_READY;
+	  HAL_DMA_IRQHandler(&hdma_spi2_rx);
+//	  HAL_DMA_IRQHandler(&hdma_spi2_tx);
+	  HAL_SPI_IRQHandler(&hspi2);
+
 }
 //-------------------------------------------------------
 

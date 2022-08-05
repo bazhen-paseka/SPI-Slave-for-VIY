@@ -42,7 +42,8 @@
 /* Private variables ---------------------------------------------------------*/
 /* USER CODE BEGIN PV */
 
-	extern	uint8_t nss_flag;
+	extern	uint8_t 	nss_flag;
+	extern	int32_t		wTransferState;
 
 /* USER CODE END PV */
 
@@ -239,7 +240,8 @@ void EXTI15_10_IRQHandler(void)
 	if (HAL_GPIO_ReadPin(NSS_GPIO_Port, NSS_Pin) == GPIO_PIN_RESET) {
 		nss_flag = 0 ;
 	} else {
-		nss_flag = 0 ;
+		nss_flag = 1 ;
+	//	wTransferState = 1;
 	}
 
   /* USER CODE END EXTI15_10_IRQn 0 */
