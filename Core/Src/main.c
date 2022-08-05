@@ -65,6 +65,7 @@
 	int cnt_i=0;
 	volatile uint8_t nss_flag = 0;
 	extern DMA_HandleTypeDef hdma_spi2_rx;
+	volatile HAL_StatusTypeDef status_SPI_DMA_start = HAL_OK ;
 
 /* USER CODE END PV */
 
@@ -75,6 +76,7 @@ void SystemClock_Config(void);
 	uint16_t BufferCmp(uint8_t *pBuffer1, uint8_t *pBuffer2, uint16_t BufferLength);
 	void PrintSPI2 (void);
 	void ResetSPI2 (void) ;
+	volatile void Start_SPI_DMA (void) ;
 
 /* USER CODE END PFP */
 
@@ -133,7 +135,7 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-	sprintf(DataChar, "\r\n1Tx: " ) ;
+	sprintf(DataChar, "1Tx: " ) ;
 	HAL_UART_Transmit( &huart1, (uint8_t *)DataChar , strlen(DataChar) , 100 ) ;
 	snprintf(DataChar, BUFFERSIZE + 1 , "%s", (char*)aTxBuffer ) ;
 	HAL_UART_Transmit( &huart1, (uint8_t *)DataChar , strlen(DataChar) , 100 ) ;
@@ -150,15 +152,16 @@ int main(void)
 	wTransferState = TRANSFER_WAIT;
 	nss_flag = 0;
 
-	sprintf(DataChar,"SPI_TransmitReceive_DMA" ) ;
-	HAL_UART_Transmit( &huart1, (uint8_t *)DataChar , strlen(DataChar) , 100 ) ;
-	if(HAL_SPI_TransmitReceive_DMA(&hspi2, (uint8_t*)aTxBuffer, (uint8_t *)aRxBuffer, BUFFERSIZE) != HAL_OK) {
-		sprintf(DataChar," - FAIL\r\n" ) ;
-		HAL_UART_Transmit( &huart1, (uint8_t *)DataChar , strlen(DataChar) , 100 ) ;
-	} else {
-		sprintf(DataChar," - Ok.\r\n" ) ;
-		HAL_UART_Transmit( &huart1, (uint8_t *)DataChar , strlen(DataChar) , 100 ) ;
-	}
+//	sprintf(DataChar,"SPI_TransmitReceive_DMA" ) ;
+//	HAL_UART_Transmit( &huart1, (uint8_t *)DataChar , strlen(DataChar) , 100 ) ;
+//	if(HAL_SPI_TransmitReceive_DMA(&hspi2, (uint8_t*)aTxBuffer, (uint8_t *)aRxBuffer, BUFFERSIZE) != HAL_OK) {
+//		sprintf(DataChar," - FAIL\r\n" ) ;
+//		HAL_UART_Transmit( &huart1, (uint8_t *)DataChar , strlen(DataChar) , 100 ) ;
+//	} else {
+//		sprintf(DataChar," - Ok.\r\n" ) ;
+//		HAL_UART_Transmit( &huart1, (uint8_t *)DataChar , strlen(DataChar) , 100 ) ;
+//	}
+
 
 	cnt_i = 0;
 //	while (wTransferState == TRANSFER_WAIT) {
@@ -184,6 +187,9 @@ int main(void)
 	sprintf(DataChar,"NSS Ready.\r\n" ) ;
 	HAL_UART_Transmit( &huart1, (uint8_t *)DataChar , strlen(DataChar) , 100 ) ;
 
+	sprintf(DataChar,"status_SPI_DMA_start = %d\r\n", status_SPI_DMA_start ) ;
+	HAL_UART_Transmit( &huart1, (uint8_t *)DataChar , strlen(DataChar) , 100 ) ;
+
 	sprintf(DataChar,"2Tx: " ) ;
 	HAL_UART_Transmit( &huart1, (uint8_t *)DataChar , strlen(DataChar) , 100 ) ;
 	snprintf(DataChar, BUFFERSIZE + 1 , "%s", (char*)aTxBuffer ) ;
@@ -198,7 +204,7 @@ int main(void)
 	sprintf(DataChar,"\r\n" ) ;
 	HAL_UART_Transmit( &huart1, (uint8_t *)DataChar , strlen(DataChar) , 100 ) ;
 
-	PrintSPI2();
+//	PrintSPI2();
 
 	uint16_t buffer_cmp_res = 0;
 
@@ -212,16 +218,15 @@ int main(void)
 			HAL_UART_Transmit( &huart1, (uint8_t *)DataChar , strlen(DataChar) , 100 ) ;
 
 		  if(buffer_cmp_res)  {
-				sprintf(DataChar,"Buffer cmp - Wrong.\r\n") ;
+				sprintf(DataChar,"Buffer cmp - Wrong.\r\n\r\n") ;
 				HAL_UART_Transmit( &huart1, (uint8_t *)DataChar , strlen(DataChar) , 100 ) ;
 		  } else {
-				sprintf(DataChar,"Buffer cmp - Success.\r\n") ;
+				sprintf(DataChar,"Buffer cmp - Success.\r\n\r\n") ;
 				HAL_UART_Transmit( &huart1, (uint8_t *)DataChar , strlen(DataChar) , 100 ) ;
 		  }
 		break;
 		default: {} break;
 	}
-//	HAL_Delay(10000);
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -353,6 +358,11 @@ HAL_UART_Transmit( &huart1, (uint8_t *)DataChar , strlen(DataChar) , 100 ) ;
 //	  HAL_DMA_IRQHandler(&hdma_spi2_tx);
 	  HAL_SPI_IRQHandler(&hspi2);
 
+}
+//-------------------------------------------------------
+
+void Start_SPI_DMA (void) {
+	status_SPI_DMA_start =  HAL_SPI_TransmitReceive_DMA(&hspi2, (uint8_t*)aTxBuffer, (uint8_t *)aRxBuffer, BUFFERSIZE);
 }
 //-------------------------------------------------------
 

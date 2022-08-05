@@ -50,6 +50,8 @@
 /* Private function prototypes -----------------------------------------------*/
 /* USER CODE BEGIN PFP */
 
+	extern void Start_SPI_DMA(void);
+
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -239,6 +241,7 @@ void EXTI15_10_IRQHandler(void)
 
 	if (HAL_GPIO_ReadPin(NSS_GPIO_Port, NSS_Pin) == GPIO_PIN_RESET) {
 		nss_flag = 0 ;
+		Start_SPI_DMA();
 	} else {
 		nss_flag = 1 ;
 	}
